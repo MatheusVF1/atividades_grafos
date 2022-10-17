@@ -86,4 +86,14 @@ for i in range (12):
 print("\n", dist_vec, sep="")
 print(dist_max)
 
+menor_vec = min(dist_vec)
+menor_max = 100
+indice = -1
 
+for go in range(12):
+    if dist_vec[go] == menor_vec:
+        if dist_max[go] < menor_max:
+            menor_max = dist_max[go]
+            indice = go
+
+print('\nO melhor vértice para ser a estação central: Vértice {}'.format(indice+1))

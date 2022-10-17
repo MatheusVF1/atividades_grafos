@@ -78,7 +78,7 @@ G.graph = [
 dist_vec = []
 dist_max = []
 
-for i in range (12):
+for i in range (10):
     G.dijk(i)
 
 print("\n", dist_vec, sep="")
@@ -88,7 +88,7 @@ menor_vec = min(dist_vec)
 menor_max = 100
 indice = -1
 
-for go in range(12):
+for go in range(10):
     if dist_vec[go] == menor_vec:
         if dist_max[go] < menor_max:
             menor_max = dist_max[go]

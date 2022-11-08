@@ -1,6 +1,6 @@
-import json
+!pip install geopy
 
-from math import radians, cos, sin, asin, sqrt
+import json
 from geopy.distance import geodesic as GD
 
 

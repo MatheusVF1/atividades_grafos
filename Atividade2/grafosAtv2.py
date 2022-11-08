@@ -1,5 +1,8 @@
 import json
+
 from math import radians, cos, sin, asin, sqrt
+from geopy.distance import geodesic as GD
+
 
 class Graph(object):
     def __init__(self, data=None):
@@ -119,8 +122,8 @@ class Graph(object):
                 caminhoA = self._path(source, target, path)
                 caminho = []
                 for i in caminhoA:
-                    caminho.append(list_nomes[i])
-                return visited[target], caminho
+                    caminho.append(lista_nomes[i])
+                return print("Menor distância calculada é {}".format(visited[target]), "\nO menor caminho encontrado é: {}".format(caminho))
 
 
     def floyd_warshall(self, source, target, infinity=99999999):
@@ -161,8 +164,8 @@ class Graph(object):
             iter_source = target_path[iter_source]
         caminho = []
         for i in exact_path:
-                caminho.append(list_nomes[i])
-        return distance[source][target], caminho
+                caminho.append(lista_nomes[i])
+        return print("Menor distância calculada é {}".format(distance[source][target]), "\nO menor caminho encontrado é: {}".format(caminho))
 
     def _path(self, source, target, path):
         """Helper function to return a list of the path."""
@@ -174,51 +177,42 @@ class Graph(object):
         return ret_path[::-1]
 
 
-#Ler o arquivo json
+# A partir daqui começaremos a ler o arquivo json e fazer o grafo
 with open('cities.json') as json_cidades:
     cidades = json.load(json_cidades)
 
-list_latitude = []
-list_longitude = []
-list_nomes = []
+lista_nomes = []
+lista_latitudes = []
+lista_longitudes = []
 
 for i in cidades:
-    list_latitude.append(i['latitude'])
-    list_longitude.append(i['longitude'])
-    list_nomes.append(i['city'])
+    lista_nomes.append(i['city'])
+    lista_latitudes.append(i['latitude'])
+    lista_longitudes.append(i['longitude'])
 
-#calcula a distancia em km de 2 pontos na Terra
-def haversine(lon1, lat1, lon2, lat2):
-    # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-
-    # haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = (sin(dlat/2)**2 + cos(lat1)) * (cos(lat2) * sin(dlon/2)**2)
-    c = 2 * asin(sqrt(a))
-    r = 6371 # Radius of earth in kilometers. Use 3956 for miles. Determines return value units.
-    return c * r
-
-
+graph = Graph()
 for i in range(len(cidades)):
     graph = Graph([i])
 
-in_dist = int(input('Digite qual você quer que seja a distância MÁXIMA entre duas cidades para se criar uma aresta: '))
+# A distância MÁXIMA escolhida para a questão foi de 550 km ("r")
+dist_max = 550
 
-# Vai calcular a distância entre as cidades e ir colocando no grafo.
+# Utilizando o geopy aqui vai calcular a distância entre as cidades e ir colocando no grafo.
 for i in range(1000):
     for j in range(1000):
-        dist = haversine(list_longitude[i], list_latitude[i], list_longitude[j], list_latitude[j])
-        #distancia radial
-        if(dist<in_dist):
+        coord_i = (lista_latitudes[i], lista_longitudes[i])
+        coord_j = (lista_latitudes[j], lista_longitudes[j])
+        dist = GD(coord_i, coord_j).km
+        #verificando se é menor que a distância máxima digitada
+        if(dist <= dist_max):
             graph.add_edge(i, j, dist)
+
 
 # Consegue a cidade de partida do usuário
 partida = input("Insira o nome da cidade de partida: ")
 while True:
-    if partida in list_nomes:
-        index1 = list_nomes.index(partida)
+    if partida in lista_nomes:
+        inicio = lista_nomes.index(partida)
         break
     else:
         partida = input("Cidade invalida, insira novamente: ")
@@ -226,12 +220,11 @@ while True:
 # Consegue a cidade destino do usuário
 destino = input("Insira o nome da cidade de destino: ")
 while True:
-    if destino in list_nomes:
-        index2 = list_nomes.index(destino)
+    if destino in lista_nomes:
+        final = lista_nomes.index(destino)
         break
     else:
         destino = input("Cidade invalida, insira novamente: ")
 
 # Pode escolher qual algoritmo usar mudando o nome dijkstra pra floyd_warshall ou vice-versa
-# OBS: O floyd_warshall demora ALGUNS MINUTOS PARA SER EXECUTADO.
-print(graph.dijkstra(index1, index2))
+graph.dijkstra(inicio, final)

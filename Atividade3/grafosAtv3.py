@@ -1,7 +1,5 @@
-#importando bibliotecas
 import numpy as np
 from shapely import geometry
-
 import matplotlib.pyplot as plt
 from math import dist
 from descartes.patch import PolygonPatch
@@ -42,10 +40,11 @@ def lerVertices(arquivo):
         count += 1
     return startpoint, endpoint, polyV, V
 
-
+#Indo pegar os dados do arquivo txt
 f = open("mapa.txt", "r")
 comeco, final, Vertices, allVertices = lerVertices(f)
-# printando o mapa:
+
+# fazendo o mapa e plotando ele
 poligStorage = []
 fig, ax = plt.subplots()
 for polig in Vertices:
@@ -56,6 +55,7 @@ for polig in Vertices:
     ax.fill(x, y, alpha=0.5, fc='r')
     plt.plot(x, y)
 
+    
 points = []
 i = 0
 for p in allVertices:

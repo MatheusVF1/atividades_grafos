@@ -68,6 +68,10 @@ for p in allVertices:
     gp.annotate(str(i), (x[0], y[0]))
     i += 1
 
+    
+    
+    
+
 lines =[]
 fig,gp = plt.subplots()
 
@@ -88,6 +92,11 @@ for i in allVertices:
 for polig in armazenPoligono:
   x,y = polig.exterior.xy
   gp.fill(x, y, alpha=1, fc='black')
+
+
+    
+    
+    
 
 class Graph:
     def __init__(self, vertices):
@@ -122,6 +131,10 @@ def grafoVisibilidade(Poligonos, V):
     return G
 
 G = grafoVisibilidade(armazenPoligono, allVertices)
+
+
+
+
 
 def mstKruskal(G):
     T = []
@@ -218,73 +231,81 @@ def achar(vizinho, i):
 kruskal = mstKruskal(G)
 prim = mstPrim(G)
 
-def verticeMaisProximo(T, posicao,pontos):
-  newV = geometry.Point((posicao[0],posicao[1]))
-  minD=float(99999999)
-  vertice =-1
-  for i in range(len(pontos)):
-    if newV.distance(pontos[i])<minD:
-      minD=newV.distance(pontos[i])
-      vertice=i
-  if minD==0.0:
-    print("O vértice já estava incluso no caminho: {}".format(vertice))
-  else:
-    T=T.append([len(pontos)-1,vertice,minD])
-    pontos.append(newV)
-  return vertice
 
 
-#teste com ponto inicial
-pos = np.array([1,10])
-v =verticeMaisProximo(kruskal,pos,pontos)
 
-def auxiliarCaminho(pais, v_inicial, v_final):
+def verticeMaisProximo(T, posicao, pontos):
+    novoVert = geometry.Point((posicao[0],posicao[1]))
+    menorDist = float(123456)
+    vertice = -100
+
+    for i in range(len(pontos)):
+        if novoVert.distance(pontos[i]) < menorDist:
+            menorDist = novoVert.distance(pontos[i])
+            vertice = i
+    if menorDist == 0.0:
+        print(f"Local escolhido já estava no trajeto dos vértices: {vertice}")
+    else:
+        T = T.append([len(pontos)-1, vertice, menorDist])
+        pontos.append(novoVert)
+    return vertice
+
+posic = np.array([1,10])  # Fazendo teste com ponto inicial
+v = verticeMaisProximo(kruskal, posic, pontos)
+
+
+
+
+def computarCaminho(T, start, end, pontos):
+    verticeInicial = verticeMaisProximo(T, start, pontos)
+    verficeFinal = verticeMaisProximo(T, end, pontos)
+    matrizV = [[] for linha in range(len(pontos))]
+    
+    for u, v, w in T:
+        matrizV[u].append(v)
+        matrizV[v].append(u)
+
+    for i in range(len(matrizV)):
+        matrizV[i] = sorted(matrizV[i], key=lambda v: v)
+
+    visitado = set()
+    fila = []
+    vizinho = [0] * 15
+    fila.append(verticeInicial)
+    visitado.add(verticeInicial)
+
+    while fila:
+        Vatual = fila.pop(0)
+
+        if Vatual == verficeFinal:
+            return calCaminho(vizinho, verticeInicial, verficeFinal)
+        
+        for k in matrizV[Vatual]:
+            if k not in visitado:
+                vizinho[k] = Vatual
+                visitado.add(k)
+                fila.append(k)
+
+def calCaminho(pais, verticeInicial, verficeFinal):
     path = []
-    path.append(v_final)
-    while path[-1] != v_inicial:
+    path.append(verficeFinal)
+
+    while path[-1] != verticeInicial:
         path.append(pais[path[-1]])
+    
     path.reverse()
     return path
 
-
-def computarCaminho(T, pos_inicial, pos_final, pontos):
-    v_inicial = verticeMaisProximo(T, pos_inicial, pontos)
-    v_final = verticeMaisProximo(T, pos_final, pontos)
-    matrixV = [[] for row in range(len(pontos))]
-    for u, v, w in T:
-        matrixV[u].append(v)
-        matrixV[v].append(u)
-
-    for i in range(len(matrixV)):
-        matrixV[i] = sorted(matrixV[i], key=lambda v: v)
-
-    visited = set()
-    queue = []
-    vizinho = [0] * 15
-    queue.append(v_inicial)
-    visited.add(v_inicial)
-    while queue:
-        currentV = queue.pop(0)
-
-        if currentV == v_final:
-            return auxiliarCaminho(vizinho, v_inicial, v_final)
-        for n in matrixV[currentV]:
-            if n not in visited:
-                vizinho[n] = currentV
-                visited.add(n)
-                queue.append(n)
+start = np.array([1, 10])
+end = np.array([10, 1])
+resultadoCaminho = computarCaminho(kruskal, start, end, pontos)
+print(resultadoCaminho)
 
 
-pos_inicial = np.array([1, 10])
-pos_final = np.array([10, 1])
 
-caminho = computarCaminho(kruskal, pos_inicial, pos_final, pontos)
+start = np.array([random.uniform(0,10), random.uniform(0,10)])
+end = np.array([random.uniform(0,10), random.uniform(0,10)])
+print("Pontos aleatórios obtidos:", start,end)
 
-print(caminho)
-
-pos_inicial = np.array([random.uniform(0,10), random.uniform(0,10)])
-pos_final = np.array([random.uniform(0,10), random.uniform(0,10)])
-print(pos_inicial,pos_final)
-
-path = computarCaminho(kruskal, pos_inicial, pos_final,pontos)
-print(path)
+path = computarCaminho(kruskal, start, end,pontos)
+print("Caminho obtido com os pontos aleatórios:", path)

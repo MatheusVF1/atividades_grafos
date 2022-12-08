@@ -3,6 +3,8 @@ from shapely import geometry
 import matplotlib.pyplot as plt
 from math import dist
 from descartes.patch import PolygonPatch
+from matplotlib import Path
+import random
 
 def lerVertices(arquivo):
     entrada = arquivo.readlines() 
@@ -236,9 +238,6 @@ def verticeMaisProximo(T, posicao,pontos):
 pos = np.array([1,10])
 v =verticeMaisProximo(kruskal,pos,pontos)
 
-from matplotlib import Path
-
-
 def auxiliarCaminho(pais, v_inicial, v_final):
     path = []
     path.append(v_final)
@@ -283,7 +282,6 @@ caminho = computarCaminho(kruskal, pos_inicial, pos_final, pontos)
 
 print(caminho)
 
-import random
 pos_inicial = np.array([random.uniform(0,10), random.uniform(0,10)])
 pos_final = np.array([random.uniform(0,10), random.uniform(0,10)])
 print(pos_inicial,pos_final)

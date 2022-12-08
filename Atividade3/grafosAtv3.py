@@ -66,6 +66,26 @@ for p in allVertices:
     gp.annotate(str(i), (x[0], y[0]))
     i += 1
 
+lines =[]
+fig,gp = plt.subplots()
+
+for i in allVertices:
+    for j in allVertices:
+      if i!=j:
+        vaiProximo = False
+        line = geometry.LineString([i,j])
+        for poliC in armazenPoligono:
+          if line.crosses(poliC) or poliC.contains(line) or poliC.covers(line):
+            vaiProximo = True
+        if vaiProximo == False:
+
+          lines.append(line)
+          x,y = line.xy
+          plt.plot(x,y)
+
+for polig in armazenPoligono:
+  x,y = polig.exterior.xy
+  gp.fill(x, y, alpha=1, fc='black')
 
 class Graph:
     def __init__(self, vertices):
@@ -99,103 +119,102 @@ def grafoVisibilidade(Poligonos, V):
         gp.fill(x, y, alpha=1, fc='black')
     return G
 
-G=grafoVisibilidade(armazenPoligono, allVertices)
-
-
-def find(parent, i):
-    if parent[i] == i:
-        return i
-    return find(parent, parent[i])
-
-
-def union(parent, rank, x, y):
-    if rank[x] < rank[y]:
-        parent[x] = y
-    elif rank[x] > rank[y]:
-        parent[y] = x
-    else:
-        parent[y] = x
-        rank[x] += 1
-
-
-def minKey(key, mstSet, G):
-    min = np.Int
-    for v in range(G.quantVertices):
-        if key[v] < min and mstSet[v] == False:
-            min = key[v]
-            min_index = v
-    return min_index
-
+G = grafoVisibilidade(armazenPoligono, allVertices)
 
 def mstKruskal(G):
     T = []
-    index = 0
-    edge = 0
+    indice = 0
+    aresta = 0
     G.graph = sorted(G.graph, key=lambda vertice: vertice[2])
+    vizinho = []
+    classif = []
 
-    parent = []
-    rank = []
-    for node in range(G.quantVertices):
-        parent.append(node)
-        rank.append(0)
-    while edge < G.quantVertices - 1:
-        u, v, w = G.graph[index]
-        index = index + 1
-        x = find(parent, u)
-        y = find(parent, v)
+    for vertice in range(G.quantVertices):
+        vizinho.append(vertice)
+        classif.append(0)
+    
+    while aresta < G.quantVertices - 1:
+        u, v, w = G.graph[indice]
+        indice = indice + 1
+        x = achar(vizinho, u)
+        y = achar(vizinho, v)
         if x != y:
-            edge = edge + 1
+            aresta = aresta + 1
             T.append([u, v, w])
-            union(parent, rank, x, y)
+            juncao(vizinho, classif, x, y)
 
-    costmin = 0
-    print("Edges in the constructed MST (Kruskal)")
+    custoMinimo = 0
+    print("Arestas da árvore construída com Kruskal")
+
     for u, v, weight in T:
-        costmin += weight
-        print("{} -- {} == {}\n".format(u, v, weight))
-    print("Minimum Spanning Tree:", costmin)
-    print("Done!\n\n")
+        custoMinimo += weight
+        print("{} --- {} == {}".format(u, v, weight))
+    
+    print("\nMenor árvore vista:", custoMinimo)
     return T
-
 
 def mstPrim(G):
     T = []
-    matrixG = [[0 for column in range(G.quantVertices)] for row in range(G.quantVertices)]
-    selectedV = [0] * G.quantVertices
+    matrizG = [[0 for coluna in range(G.quantVertices)] for fileira in range(G.quantVertices)]
+    Vselecionado = [0] * G.quantVertices
 
-    for edge in G.graph:
-        matrixG[edge[0]][edge[1]] = edge[2]
-    selectedV[0] = True
-    numberEdges = 0
-    while numberEdges < G.quantVertices - 1:
-        minimum = np.Inf
+    for aresta in G.graph:
+        matrizG[aresta[0]][aresta[1]] = aresta[2]
+    
+    Vselecionado[0] = True
+    quantArestas = 0
+
+    while quantArestas < G.quantVertices - 1:
+        minimo = np.Inf
         u = 0
         v = 0
         for i in range(G.quantVertices):
-            if selectedV[i]:
+            if Vselecionado[i]:
                 for j in range(G.quantVertices):
-                    if ((not selectedV[j]) and matrixG[i][j]):
-                        if minimum > matrixG[i][j]:
-                            minimum = matrixG[i][j]
+                    if ((not Vselecionado[j]) and matrizG[i][j]):
+                        if minimo > matrizG[i][j]:
+                            minimo = matrizG[i][j]
                             u = i
                             v = j
-        T.append([u, v, matrixG[u][v]])
-        selectedV[v] = True
-        numberEdges += 1
+        T.append([u, v, matrizG[u][v]])
+        Vselecionado[v] = True
+        quantArestas += 1
+    
     T = sorted(T, key=lambda vertice: vertice[2])
-    costmin = 0
-    print("Edges in the constructed MST(Prim)")
+    custoMinimo = 0
+    print("\nArestas da árvore construída com Prim")
+
     for u, v, weight in T:
-        costmin += weight
-        print("{} -- {} == {}\n".format(u, v, weight))
-    print("Minimum Spanning Tree:", costmin)
-    print("Done!")
+        custoMinimo += weight
+        print("{} --- {} == {}".format(u, v, weight))
+    
+    print("\nMenor árvore vista:", custoMinimo)
     return T
 
+def menorChave(key, mst, G):
+    minimo = np.Int
+    for v in range(G.quantVertices):
+        if key[v] < minimo and mst[v] == False:
+            minimo = key[v]
+            indiceMin = v
+    return indiceMin
 
-Tk = mstKruskal(G)
-Tp = mstPrim(G)
+def juncao(vizinho, classif, x, y):
+    if classif[x] < classif[y]:
+        vizinho[x] = y
+    elif classif[x] > classif[y]:
+        vizinho[y] = x
+    else:
+        vizinho[y] = x
+        classif[x] += 1
 
+def achar(vizinho, i):
+    if vizinho[i] == i:
+        return i
+    return achar(vizinho, vizinho[i])
+
+kruskal = mstKruskal(G)
+prim = mstPrim(G)
 
 def verticeMaisProximo(T, posicao,pontos):
   newV = geometry.Point((posicao[0],posicao[1]))
@@ -215,8 +234,7 @@ def verticeMaisProximo(T, posicao,pontos):
 
 #teste com ponto inicial
 pos = np.array([1,10])
-v =verticeMaisProximo(Tk,pos,pontos)
-
+v =verticeMaisProximo(kruskal,pos,pontos)
 
 from matplotlib import Path
 
@@ -243,17 +261,17 @@ def computarCaminho(T, pos_inicial, pos_final, pontos):
 
     visited = set()
     queue = []
-    parent = [0] * 15
+    vizinho = [0] * 15
     queue.append(v_inicial)
     visited.add(v_inicial)
     while queue:
         currentV = queue.pop(0)
 
         if currentV == v_final:
-            return auxiliarCaminho(parent, v_inicial, v_final)
+            return auxiliarCaminho(vizinho, v_inicial, v_final)
         for n in matrixV[currentV]:
             if n not in visited:
-                parent[n] = currentV
+                vizinho[n] = currentV
                 visited.add(n)
                 queue.append(n)
 
@@ -261,7 +279,7 @@ def computarCaminho(T, pos_inicial, pos_final, pontos):
 pos_inicial = np.array([1, 10])
 pos_final = np.array([10, 1])
 
-caminho = computarCaminho(Tk, pos_inicial, pos_final, pontos)
+caminho = computarCaminho(kruskal, pos_inicial, pos_final, pontos)
 
 print(caminho)
 
@@ -270,5 +288,5 @@ pos_inicial = np.array([random.uniform(0,10), random.uniform(0,10)])
 pos_final = np.array([random.uniform(0,10), random.uniform(0,10)])
 print(pos_inicial,pos_final)
 
-path = computarCaminho(Tk, pos_inicial, pos_final,pontos)
+path = computarCaminho(kruskal, pos_inicial, pos_final,pontos)
 print(path)

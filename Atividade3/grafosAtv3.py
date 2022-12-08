@@ -4,124 +4,102 @@ import matplotlib.pyplot as plt
 from math import dist
 from descartes.patch import PolygonPatch
 
-
 def lerVertices(arquivo):
-    input = arquivo.readlines()
-    count = 0
+    entrada = arquivo.readlines() 
+    aux = 0
     V = []
+
     for i in range(0, 2):
-        cline = input[i]
+        divi = entrada[i]
         if i == 0:
-            cline = cline.split(",")
-            startpoint = (float(cline[0]), float(cline[1]))
-            V.append(startpoint)
-
-
+            divi = divi.split(",")
+            pontoInicial = (float(divi[0]), float(divi[1]))
+            V.append(pontoInicial)
         else:
-            cline = cline.split(",")
-            endpoint = (float(cline[0]), float(cline[1]))
-            V.append(endpoint)
+            divi = divi.split(",")
+            pontoFinal = (float(divi[0]), float(divi[1]))
+            V.append(pontoFinal)
 
-    numObstacles = int(input[2])
-    count = 3
-    numPoints = 0
-    polyV = []
-    for i in range(numObstacles):
-        numPoints = int(input[count])
-        polyg = []
-        for j in range(numPoints):
-            count += 1
-            cline = input[count]
+    quantObstaculos = int(entrada[2])
+    aux = 3
+    quantPontos = 0
+    polV = []
 
-            cline = cline.split(", ")
-            V.append((float(cline[0]), float(cline[1])))
-            polyg.append((float(cline[0]), float(cline[1])))
-        polyV.append(polyg)
-        count += 1
-    return startpoint, endpoint, polyV, V
+    for i in range(quantObstaculos):
+        quantPontos = int(entrada[aux])
+        polG = []
+        for j in range(quantPontos):
+            aux += 1
+            divi = entrada[aux]
+
+            divi = divi.split(", ")
+            V.append((float(divi[0]), float(divi[1])))
+            polG.append((float(divi[0]), float(divi[1])))
+        polV.append(polG)
+        aux += 1
+    return pontoInicial, pontoFinal, polV, V
 
 #Indo pegar os dados do arquivo txt
 f = open("mapa.txt", "r")
 comeco, final, Vertices, allVertices = lerVertices(f)
 
 # fazendo o mapa e plotando ele
-poligStorage = []
-fig, ax = plt.subplots()
-for polig in Vertices:
-    cpoly = geometry.Polygon(shell=polig)
-    poligStorage.append(cpoly)
+armazenPoligono = []
+fig, gp = plt.subplots()
 
-    x, y = cpoly.exterior.xy
-    ax.fill(x, y, alpha=0.5, fc='r')
+for polig in Vertices:
+    poliC = geometry.Polygon(shell=polig)
+    armazenPoligono.append(poliC)
+
+    x, y = poliC.exterior.xy
+    gp.fill(x, y, alpha=0.5, fc='black')
     plt.plot(x, y)
 
-    
-points = []
+pontos = []
 i = 0
+
 for p in allVertices:
-    cpoint = geometry.Point(p)
-    points.append(cpoint)
-    x, y = cpoint.xy
+    cponto = geometry.Point(p)
+    pontos.append(cponto)
+    x, y = cponto.xy
     plt.plot(x, y, 'o')
-    ax.annotate(str(i), (x[0], y[0]))
+    gp.annotate(str(i), (x[0], y[0]))
     i += 1
 
-lines =[]
-fig,ax = plt.subplots()
 
-for i in allVertices:
-  for j in allVertices:
-    if i!=j:
-      gotonext = False
-      line = geometry.LineString([i,j])
-      for cpoly in poligStorage:
-        if line.crosses(cpoly) or cpoly.contains(line) or cpoly.covers(line):
-          gotonext = True
-      if gotonext == False:
-
-        lines.append(line)
-        x,y = line.xy
-        plt.plot(x,y)
-
-for polig in poligStorage:
-  x,y = polig.exterior.xy
-  ax.fill(x, y, alpha=1, fc='black',edgecolor='black')
-
-
-# codigo auxiliar grafo
 class Graph:
-
     def __init__(self, vertices):
-        self.vertsnumber = vertices
+        self.quantVertices = vertices
         self.graph = []
-
-    def add_edge(self, u, v, w):
-        self.graph.append([u, v, w])
 
     def gprint(self):
         print(self.graph)
 
-def montarGrafoVisibilidade(V, Poligs):
-  G = Graph(15)
-  fig,ax = plt.subplots()
-  for i in V:
-   for j in V:
-      if i!=j:
-        gotonext = False
-        line = geometry.LineString([i,j])
-        for cpoly in Poligs:
-          if line.crosses(cpoly) or cpoly.contains(line) or cpoly.covers(line):
-            gotonext = True
-        if gotonext == False:
-          G.add_edge(allVertices.index(i),allVertices.index(j),line.length)
-          x,y = line.xy
-          plt.plot(x,y)
-  for polig in Poligs:
-    x,y = polig.exterior.xy
-    ax.fill(x, y, alpha=1, fc='black',edgecolor='black')
-  return G
+    def add_edge(self, u, v, w):
+        self.graph.append([u, v, w])
 
-G=montarGrafoVisibilidade(allVertices,poligStorage)
+def grafoVisibilidade(Poligonos, V):
+    G = Graph(15)
+    fig, gp = plt.subplots()
+
+    for i in V:
+        for j in V:
+            if i!=j:
+                vaiProximo = False
+                line = geometry.LineString([i,j])
+                for poliC in Poligonos:
+                    if line.crosses(poliC) or poliC.contains(line) or poliC.covers(line):
+                        vaiProximo = True
+                if vaiProximo == False:
+                    G.add_edge(allVertices.index(i),allVertices.index(j),line.length)
+                    x,y = line.xy
+                    plt.plot(x,y)
+    for polig in Poligonos:
+        x,y = polig.exterior.xy
+        gp.fill(x, y, alpha=1, fc='black')
+    return G
+
+G=grafoVisibilidade(armazenPoligono, allVertices)
 
 
 def find(parent, i):
@@ -142,7 +120,7 @@ def union(parent, rank, x, y):
 
 def minKey(key, mstSet, G):
     min = np.Int
-    for v in range(G.vertsnumber):
+    for v in range(G.quantVertices):
         if key[v] < min and mstSet[v] == False:
             min = key[v]
             min_index = v
@@ -157,10 +135,10 @@ def mstKruskal(G):
 
     parent = []
     rank = []
-    for node in range(G.vertsnumber):
+    for node in range(G.quantVertices):
         parent.append(node)
         rank.append(0)
-    while edge < G.vertsnumber - 1:
+    while edge < G.quantVertices - 1:
         u, v, w = G.graph[index]
         index = index + 1
         x = find(parent, u)
@@ -182,20 +160,20 @@ def mstKruskal(G):
 
 def mstPrim(G):
     T = []
-    matrixG = [[0 for column in range(G.vertsnumber)] for row in range(G.vertsnumber)]
-    selectedV = [0] * G.vertsnumber
+    matrixG = [[0 for column in range(G.quantVertices)] for row in range(G.quantVertices)]
+    selectedV = [0] * G.quantVertices
 
     for edge in G.graph:
         matrixG[edge[0]][edge[1]] = edge[2]
     selectedV[0] = True
     numberEdges = 0
-    while numberEdges < G.vertsnumber - 1:
+    while numberEdges < G.quantVertices - 1:
         minimum = np.Inf
         u = 0
         v = 0
-        for i in range(G.vertsnumber):
+        for i in range(G.quantVertices):
             if selectedV[i]:
-                for j in range(G.vertsnumber):
+                for j in range(G.quantVertices):
                     if ((not selectedV[j]) and matrixG[i][j]):
                         if minimum > matrixG[i][j]:
                             minimum = matrixG[i][j]
@@ -218,6 +196,7 @@ def mstPrim(G):
 Tk = mstKruskal(G)
 Tp = mstPrim(G)
 
+
 def verticeMaisProximo(T, posicao,pontos):
   newV = geometry.Point((posicao[0],posicao[1]))
   minD=float(99999999)
@@ -236,7 +215,8 @@ def verticeMaisProximo(T, posicao,pontos):
 
 #teste com ponto inicial
 pos = np.array([1,10])
-v =verticeMaisProximo(Tk,pos,points)
+v =verticeMaisProximo(Tk,pos,pontos)
+
 
 from matplotlib import Path
 
@@ -281,7 +261,7 @@ def computarCaminho(T, pos_inicial, pos_final, pontos):
 pos_inicial = np.array([1, 10])
 pos_final = np.array([10, 1])
 
-caminho = computarCaminho(Tk, pos_inicial, pos_final, points)
+caminho = computarCaminho(Tk, pos_inicial, pos_final, pontos)
 
 print(caminho)
 
@@ -289,6 +269,6 @@ import random
 pos_inicial = np.array([random.uniform(0,10), random.uniform(0,10)])
 pos_final = np.array([random.uniform(0,10), random.uniform(0,10)])
 print(pos_inicial,pos_final)
-path = computarCaminho(Tk, pos_inicial, pos_final,points)
 
+path = computarCaminho(Tk, pos_inicial, pos_final,pontos)
 print(path)
